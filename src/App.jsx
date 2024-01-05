@@ -1,35 +1,68 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import axios from "axios";
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const ShortenerForm = () => {
+  const [originalUrl, setOriginalUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const shortenUrl = async () => {
+    if (!originalUrl) {
+      alert('Please enter a URL.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Making a POST request to a URL shortening service
+      const response = await axios.post('http://localhost:8000/shorten/', {
+        original_url: originalUrl,
+      });
+      // Updating state with the shortened URL
+      setShortUrl(`http://localhost:8000/${response.data.short_url}`);
+    } catch (error) {
+      console.error('Error shortening URL:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="flex items-center justify-center h-screen">
+      <div className="bg-gray-100 p-6 rounded shadow-md w-96">
+        <h1 className="text-2xl font-semibold mb-4">URL Shortener</h1>
+        <input
+          className="w-full border p-2 mb-4"
+          type="text"
+          value={originalUrl}
+          onChange={(e) => setOriginalUrl(e.target.value)}
+          placeholder="Enter URL to shorten"
+        />
+        <button
+          className={`bg-blue-500 text-white px-4 py-2 rounded ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={shortenUrl}
+          disabled={loading}
+        >
+          {loading ? 'Loading...' : 'Shorten URL'}
         </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+        {shortUrl && (
+          <div className="mt-4">
+            <p className="font-semibold">Shortened URL:</p>
+            <a
+              href={shortUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {shortUrl}
+            </a>
+          </div>
+        )}
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default App
+export default ShortenerForm;
